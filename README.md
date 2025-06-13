@@ -17,7 +17,7 @@ Proyek ini diharapkan dapat memberi dampak signifikan baik bagi dunia bisnis dan
 
 ### Goals
 1. Mengembangkan algoritma dengan tingkat akurasi prediksi yang cukup akurat untuk klasifikasi risiko kerusakan mesin milling.
-2. Mengimplementasikan algoritma prediksi dalam meningkatkan deteksi dini serangan jantung berdasarkan teknologi yang akan dibangun.
+2. Mengimplementasikan algoritma prediksi dalam meningkatkan deteksi potensi kerusakan mesin milling berdasarkan teknologi yang akan dibangun.
 
 ### Solution
 1. Mengumpulkan data kerusakan mesin milling yang terekam beserta faktornya dan memproses data tersebut agar bisa diolah oleh algoritma prediksi.
@@ -55,19 +55,20 @@ Kemudian, untuk analisis data multivariat, ditemukan:
 - Mayoritas kerusakan terjadi pada rentang kecepatan rotasi 1250 rpm hingga sekitar 1500 rpm, serta ada beanyak outlier kerusakan yang terjadi pada rotasi di atas 1500 rpm pada semua tipe mesin
 - Mayoritas kerusakan terjadi pada rentang torsi 40 nm hingga sekitar 70 Nm, serta ada banyak outlier kerusakan yang terjadi pada torsi di bawah 30 Nm pada semua tipe mesin
 - Mayoritas kerusakan terjadi pada rentang torsi 40 nm hingga sekitar 70 Nm, serta ada banyak outlier kerusakan yang terjadi pada torsi di bawah 30 Nm pada semua tipe mesin
-- Mayoritas kerusakan terjadi pada rentang selisih suhu 8 K hingga sekitar 9 K
+- Dari fitur baru yang dibuat yaitu `Temp Diff [K]`, mayoritas kerusakan terjadi pada rentang selisih suhu 8 K hingga sekitar 9 K
 
 ## Data Preparation
-1. Hapus dahulu kolom yang tidak akan digunakan. Kolom yang tidak akan digunakan adalah `UDI`, `Product ID`, serta segala jenis spesifik kerusakan mesin, dari `TWF` hingga `RNF`, karena kita akan terfokus ke kerusakan mesin keseluruhan.
-2. Terapkan Label Encoding ke fitur `Type` agar bisa dilihat korelasinya dengan data lain
-3. Periksa korelasi antar fitur dalam dataset. Ditemukan korelasi tertinggi dengan `Machine failure` ada dengan data `Torque [Nm]`, `Tool wear [min]`, serta `Temp Diff [K]`
-4. Standarisasi fitur yang memiliki standar deviasi tinggi yaitu `Rotational speed [rpm]`, dan `Tool wear [min]`
-5. Train Test Split, dimana data akan dipecah menjadi data pelatihan model (80% dari keseluruhan) dan data pengujian model (20% dari keseluruhan). Fitur yang akan digunakan utamanya untuk menghasilkan prediksi adalah data yang berkorelasi paling tinggi dengan kerusakan mesin milling, yaitu `Torque [Nm]`, `Tool wear [min]`, serta `Temp Diff [K]`. 
-6. Periksa shape dari data latih dan data uji. Terdapat 8000 baris data latih, dan 2000 baris data uji.
+1. Buat fitur baru yaitu `Temp Diff [K]` dari selisih antara fitur `Air temperature [K]` dengan fitur `Process temperature [K]`
+2. Hapus dahulu kolom yang tidak akan digunakan. Kolom yang tidak akan digunakan adalah `UDI`, `Product ID`, serta segala jenis spesifik kerusakan mesin, dari `TWF` hingga `RNF`, karena kita akan terfokus ke kerusakan mesin keseluruhan.
+3. Terapkan Label Encoding ke fitur `Type` agar bisa dilihat korelasinya dengan data lain
+4. Periksa korelasi antar fitur dalam dataset. Ditemukan korelasi tertinggi dengan `Machine failure` ada dengan data `Torque [Nm]`, `Tool wear [min]`, serta `Temp Diff [K]`
+5. Standarisasi fitur yang memiliki standar deviasi tinggi yaitu `Rotational speed [rpm]`, dan `Tool wear [min]`
+6. Train Test Split, dimana data akan dipecah menjadi data pelatihan model (80% dari keseluruhan) dan data pengujian model (20% dari keseluruhan). Fitur yang akan digunakan utamanya untuk menghasilkan prediksi adalah data yang berkorelasi paling tinggi dengan kerusakan mesin milling, yaitu `Torque [Nm]`, `Tool wear [min]`, serta `Temp Diff [K]`. 
+7. Periksa shape dari data latih dan data uji. Terdapat 8000 baris data latih, dan 2000 baris data uji.
 
 ## Modelling
 ### XGBoost Classifier
-XGBoost CLassifier merupakan salah satu algoritma yang terbaru dalam dunia machine learning, berbasis gradien ekstrim. Keunggulan XGBoost mencakup akurasi tinggi, skalabilitas, dan fleksibilitas, serta regularisasi bawaan XGBoost membantu mencegah overfitting dan meningkatkan generalisasi.
+XGBoost CLassifier merupakan salah satu algoritma yang terbaru dalam dunia machine learning, yang bekerja dengan metode pembelajaran ensemble yang kuat yang membangun model prediktif dengan menggabungkan prediksi dari beberapa pohon keputusan dalam proses berulang, yang dikenal sebagai peningkatan gradien. XGBoost menggunakan algoritma penurunan gradien untuk meminimalkan fungsi kerugian. Hal ini melibatkan perhitungan gradien (kemiringan) fungsi kerugian dan penyesuaian parameter model (bobot dan pemisahan dalam pohon keputusan) untuk bergerak ke arah penurunan paling curam. Keunggulan XGBoost mencakup akurasi tinggi, skalabilitas, dan fleksibilitas, serta regularisasi bawaan XGBoost membantu mencegah overfitting dan meningkatkan generalisasi.
 
 Parameter XGBoost yang akan digunakan adalah:
 - **booster**: booster yang digunakan oleh XGBoost (sesuai namanya dalam algoritmanya, Boost). Defaultnya adalah 'gbtree', yang menggunakan booster berbasis pohon. 
@@ -76,7 +77,7 @@ Parameter XGBoost yang akan digunakan adalah:
 Setelah pelatihan, model mencapai akurasi sebesar 99.7% terhadap data latih. Saat dievaluasi terhadap data uji, akurasinya turun menjadi 97.6%, tidak terlalu signifikan. 
 
 ### Random Forest Classifier
-Random Forest Classifier layak dicoba karena merupakan salah satu algoritma berbasis Ensemble Learning yang umum digunakan sejak dahulu. Keunggulan Random Forest mencakup kinerja yang baik dalam berbagai jenis masalah klasifikasi, kemampuan bawaan untuk mengurangi overfitting.
+Random Forest Classifier merupakan salah satu algoritma berbasis Ensemble Learning yang umum digunakan sejak dahulu. RF menggabungkan prediksi beberapa pohon keputusan untuk membuat klasifikasi akhir. Setiap pohon keputusan dilatih pada subset data yang berbeda, dan masing-masing menggunakan pilihan fitur secara acak. Keunggulan Random Forest mencakup kinerja yang baik dalam berbagai jenis masalah klasifikasi, kemampuan bawaan untuk mengurangi overfitting.
 
 Parameter Random Forest Classifier yang digunakan adalah: 
 - n_estimators: Jumlah pohon dalam forest. (Nilai Default = 100)
@@ -86,7 +87,7 @@ Parameter Random Forest Classifier yang digunakan adalah:
 Setelah pelatihan, model mencapai akurasi sebesar 99.97% terhadap data latih. Saat dievaluasi terhadap data uji, akurasinya turun menjadi 98%, tidak terlalu signifikan. 
 
 ### Multi Layer Perceptron (MLP) Classifier
-MLP Classsifier adalaha algoritma klasifikasi berbasis neural network (perceptron). Keunggulan MLP Classifier mencakup keunggulan dalam pemodelan hubungan non-linier, mempelajari fitur secara otomatis, dan menangani kumpulan data besar dengan skalabilitas.
+MLP Classsifier adalaha algoritma klasifikasi berbasis neural network (perceptron), yang bekerja dengan menggabungkan fitur masukan, menerapkan fungsi aktivasi untuk memperkenalkan non-linearitas, dan kemudian menyebarkan hasilnya melalui lapisan tersembunyi sebelum membuat prediksi akhir di lapisan keluaran. Keunggulan MLP Classifier mencakup keunggulan dalam pemodelan hubungan non-linier, mempelajari fitur secara otomatis, dan menangani kumpulan data besar dengan skalabilitas.
 
 Parameter yang digunakan dalam MLP Classifier mencakup:
 - **activation**: fungsi aktivasi dari neuron. Defaultnya adalah 'relu', tapi karena proyek klasifikasi ini hanya mencakup klasifikasi biner, maka digunakan aktivasi 'logistic'.
